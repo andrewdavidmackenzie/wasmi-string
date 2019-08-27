@@ -1,0 +1,8 @@
+[package]
+name = "wasmi-string"
+version = "0.1.0"
+authors = ["hoangpq <pquochoang2007@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+wasmi = "0.4.3"
