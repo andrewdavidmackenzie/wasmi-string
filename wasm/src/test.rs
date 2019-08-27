@@ -1,5 +1,5 @@
 use std::mem;
-use std::os::raw::{c_char, c_void};
+use std::os::raw::c_void;
 use std::ptr::copy;
 
 /*
@@ -24,7 +24,7 @@ pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
 }
 
 #[no_mangle]
-pub extern fn run(data: *mut c_char) -> *mut c_char {
+pub extern fn run(data: *mut c_void) -> *mut c_void {
     let result = "42\0";
     unsafe {
         copy(result.as_ptr(), data as *mut u8, result.len());
