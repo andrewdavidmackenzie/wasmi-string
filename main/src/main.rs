@@ -25,9 +25,9 @@ fn load_from_file(filename: &str) -> Module {
 }
 
 /*
-    Allocate memory for a new String inside the wasm module.
+    Allocate memory for a new null-terminated array of bytes inside the wasm module.
 */
-fn new_string(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
+fn alloc_byte_array(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
     let result = instance
         .invoke_export("alloc", &[RuntimeValue::I32((bytes.len() + 1) as i32)],
                        &mut NopExternals);
@@ -38,7 +38,6 @@ fn new_string(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
             for i in 0..len {
                 memory.set_value((pointer + i as i32) as u32, bytes[i]).unwrap();
             }
-            memory.set_value((pointer + len as i32) as u32, 0u8).unwrap(); // null terminate
             pointer as u32
         }
         _ => 0 as u32
@@ -97,14 +96,14 @@ fn main() {
         .expect("export name `memory` is not of memory type")
         .to_owned();
 
-    let input_data = "What is the meaning of life?";
+    let input_data = "What is the meaning of life?\0";
 
     // Allocate a string for the input data inside wasm module
-    let input_data_waasm_ptr = new_string(&instance, &memory, input_data.as_bytes());
+    let input_data_wasm_ptr = alloc_byte_array(&instance, &memory, input_data.as_bytes());
 
     // Run the `run` function on the input_data and get a result back
     let result = instance
-        .invoke_export("run", &[RuntimeValue::I32(input_data_waasm_ptr as i32)], &mut NopExternals);
+        .invoke_export("run", &[RuntimeValue::I32(input_data_wasm_ptr as i32)], &mut NopExternals);
 
     match result {
         Ok(e) => {
