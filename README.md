@@ -1,15 +1,20 @@
-# WASM interpreter (Working with String)
+# WASMI-String
+Shows an example of how to pass String parameters to and from a WASM module (written in rust) 
+from rust code, where wasm is interpreted using the WASMI wasm interpreter.
 
-# Build & Test
-
+# Clone Repo
 ```
 git clone https://github.com/hoangpq/wasmi-string
-cd wasmi-string
-make
+
 ```
 
-# Result
+# Build and Run
+This first builds the wasm module (in /wasm folder) from rust code there.
+Then it builds and runs the program (in /main folder) that runs the wasm module using
+WASMI.
+
 ```
+$ cd wasmi-string
 $ make
 cd wasm;cargo build
    Compiling test v0.1.0 (/Users/andrew/workspace/wasmi-string/wasm)
