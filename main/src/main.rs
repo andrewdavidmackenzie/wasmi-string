@@ -41,27 +41,12 @@ fn send_byte_array(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u3
     }
 }
 
-fn main() {
-    let path = env::current_dir().unwrap();
-    let module = load_from_file(format!("{}/wasm/target/wasm32-unknown-unknown/debug/test.wasm",
-                                        path.display()).as_str());
-
-    let module_ref = ModuleInstance::new(&module, &ImportsBuilder::default())
-        .unwrap()
-        .assert_no_start();
-
-    let memory = module_ref.export_by_name("memory")
-        .expect("`memory` export not found")
-        .as_memory()
-        .expect("export name `memory` is not of memory type")
-        .to_owned();
-
-    let input_data = "What is the meaning of life?";
-    let input_data_length = input_data.len();
-    println!("Question: '{}'", input_data);
+fn ask(module_ref: &ModuleRef, memory: &MemoryRef, question: &str) {
+    let input_data_length = question.len();
+    println!("Question: '{}'", question);
 
     // Allocate a string for the input data inside wasm module
-    let wasm_data_ptr = send_byte_array(&module_ref, &memory, input_data.as_bytes());
+    let wasm_data_ptr = send_byte_array(&module_ref, &memory, question.as_bytes());
 
     // Run the `run` function on the input_data and get a result back
     let result = module_ref
@@ -82,4 +67,23 @@ fn main() {
         }
         Err(e) => println!("{:?}", e)
     }
+}
+
+fn main() {
+    let path = env::current_dir().unwrap();
+    let module = load_from_file(format!("{}/wasm/target/wasm32-unknown-unknown/debug/test.wasm",
+                                        path.display()).as_str());
+
+    let module_ref = ModuleInstance::new(&module, &ImportsBuilder::default())
+        .unwrap()
+        .assert_no_start();
+
+    let memory_ref = module_ref.export_by_name("memory")
+        .expect("`memory` export not found")
+        .as_memory()
+        .expect("export name `memory` is not of memory type")
+        .to_owned();
+
+    ask(&module_ref, &memory_ref, "What is the meaning of life?");
+    ask(&module_ref, &memory_ref, "What is life?");
 }
