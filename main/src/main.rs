@@ -10,10 +10,6 @@ use wasmi::{
     NopExternals, RuntimeValue,
 };
 
-use wasm_env::WasmEnv;
-
-mod wasm_env;
-
 /*
     Load a wasm module from a .wasm file using WASMI
 */
@@ -25,9 +21,10 @@ fn load_from_file(filename: &str) -> Module {
 }
 
 /*
-    Allocate memory for a new null-terminated array of bytes inside the wasm module.
+    Allocate memory for a new null-terminated array of bytes inside the wasm module and copy
+    the array of bytes into it
 */
-fn alloc_byte_array(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
+fn send_byte_array(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
     let result = instance
         .invoke_export("alloc", &[RuntimeValue::I32((bytes.len() + 1) as i32)],
                        &mut NopExternals);
@@ -59,7 +56,7 @@ fn dealloc(instance: &ModuleRef, offset: u32) {
     Since the wasm module can only return one result (offset) we have to go through the array of bytes
     until we find the null termination and hence calculate the length
 */
-fn get_bytes(memory: &MemoryRef, mut offset: u32) -> Vec<u8> {
+fn get_byte_array(memory: &MemoryRef, mut offset: u32) -> Vec<u8> {
     let mut bytes: Vec<u8> = vec![];
     loop {
         let mut buf = [0u8; 1];
@@ -82,15 +79,12 @@ fn main() {
     let path = env::current_dir().unwrap();
     let module = load_from_file(format!("{}/wasm/target/wasm32-unknown-unknown/debug/test.wasm",
                                         path.display()).as_str());
-    let env = WasmEnv::new();
 
-    let instance = ModuleInstance::new(
-        &module, &ImportsBuilder::new().with_resolver("env", &env))
-        .expect("Failed to instantiate module")
-        .run_start(&mut NopExternals)
-        .expect("Failed to run start function in module");
+    let module_ref = ModuleInstance::new(&module, &ImportsBuilder::default())
+        .unwrap()
+        .assert_no_start();
 
-    let memory = instance.export_by_name("memory")
+    let memory = module_ref.export_by_name("memory")
         .expect("`memory` export not found")
         .as_memory()
         .expect("export name `memory` is not of memory type")
@@ -99,19 +93,19 @@ fn main() {
     let input_data = "What is the meaning of life?\0";
 
     // Allocate a string for the input data inside wasm module
-    let input_data_wasm_ptr = alloc_byte_array(&instance, &memory, input_data.as_bytes());
+    let input_data_wasm_ptr = send_byte_array(&module_ref, &memory, input_data.as_bytes());
 
     // Run the `run` function on the input_data and get a result back
-    let result = instance
+    let result = module_ref
         .invoke_export("run", &[RuntimeValue::I32(input_data_wasm_ptr as i32)], &mut NopExternals);
 
     match result {
         Ok(e) => {
             match e.unwrap() {
                 RuntimeValue::I32(result_offset) => {
-                    let result = get_bytes(&memory, result_offset as u32);
+                    let result = get_byte_array(&memory, result_offset as u32);
                     let result_str = String::from_utf8(result).unwrap();
-                    dealloc(&instance, result_offset as u32);
+                    dealloc(&module_ref, result_offset as u32);
                     println!("Result is `{}`", result_str);
                 }
                 _ => println!("Not implemented yet")
