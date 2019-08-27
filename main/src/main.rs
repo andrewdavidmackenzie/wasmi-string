@@ -24,6 +24,9 @@ fn load_from_file(filename: &str) -> Module {
     Module::from_buffer(buf).unwrap()
 }
 
+/*
+    Allocate memory for a new String inside the wasm module.
+*/
 fn new_string(instance: &ModuleRef, memory: &MemoryRef, s: &str) -> u32 {
     let result = instance
         .invoke_export("alloc", &[RuntimeValue::I32((s.len() + 1) as i32)],
@@ -43,6 +46,13 @@ fn new_string(instance: &ModuleRef, memory: &MemoryRef, s: &str) -> u32 {
     }
 }
 
+/*
+    Get the null terminated string from wasm module memory at `offset` and free that memory
+    on the wasm side by calling `dealloc`
+
+    Sicne the wasm module can only return one result (offset) we have to go through the string
+    there until we find the null termination and hence calculate the length
+*/
 fn get_string(instance: &ModuleRef, memory: &MemoryRef, mut offset: u32) -> String {
     let mut bytes: Vec<u8> = vec![];
     loop {
@@ -96,7 +106,6 @@ fn main() {
             match e.unwrap() {
                 RuntimeValue::I32(result_offset) => {
                     let result = get_string(&instance, &memory, result_offset as u32);
-                    assert_eq!("42", result);
                     println!("Result is `{}`", result);
                 }
                 _ => println!("Not implemented yet")

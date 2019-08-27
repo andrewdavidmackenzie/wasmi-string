@@ -25,7 +25,7 @@ pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
 
 #[no_mangle]
 pub extern fn run(data: *mut c_void) -> *mut c_void {
-    let result = "42\0";
+    let result = "The answer to life the universe and everything is 42\0";
     unsafe {
         copy(result.as_ptr(), data as *mut u8, result.len());
     }
