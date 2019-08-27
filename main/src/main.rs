@@ -47,13 +47,22 @@ fn new_string(instance: &ModuleRef, memory: &MemoryRef, s: &str) -> u32 {
 }
 
 /*
+    Dealloc a block of memory allocated inside wasm module
+*/
+fn dealloc(instance: &ModuleRef, offset: u32) {
+    instance.invoke_export("dealloc",
+                       &[RuntimeValue::I32(offset as i32)],
+                       &mut NopExternals).unwrap();
+}
+
+/*
     Get the null terminated string from wasm module memory at `offset` and free that memory
     on the wasm side by calling `dealloc`
 
     Sicne the wasm module can only return one result (offset) we have to go through the string
     there until we find the null termination and hence calculate the length
 */
-fn get_string(instance: &ModuleRef, memory: &MemoryRef, mut offset: u32) -> String {
+fn get_string(memory: &MemoryRef, mut offset: u32) -> String {
     let mut bytes: Vec<u8> = vec![];
     loop {
         let mut buf = [0u8; 1];
@@ -69,10 +78,6 @@ fn get_string(instance: &ModuleRef, memory: &MemoryRef, mut offset: u32) -> Stri
             Err(_) => {}
         }
     }
-    let _result = instance
-        .invoke_export("dealloc",
-                       &[RuntimeValue::I32(offset as i32)],
-                       &mut NopExternals);
 
     String::from_utf8(bytes).unwrap()
 }
@@ -105,7 +110,8 @@ fn main() {
         Ok(e) => {
             match e.unwrap() {
                 RuntimeValue::I32(result_offset) => {
-                    let result = get_string(&instance, &memory, result_offset as u32);
+                    let result = get_string(&memory, result_offset as u32);
+                    dealloc(&instance, result_offset as u32);
                     println!("Result is `{}`", result);
                 }
                 _ => println!("Not implemented yet")
