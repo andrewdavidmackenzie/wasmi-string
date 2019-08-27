@@ -71,7 +71,7 @@ fn get_string(instance: &ModuleRef, memory: &MemoryRef, mut offset: u32) -> Stri
     }
     let _result = instance
         .invoke_export("dealloc",
-                       &[RuntimeValue::I32(offset as i32), RuntimeValue::I32(bytes.len() as i32)],
+                       &[RuntimeValue::I32(offset as i32)],
                        &mut NopExternals);
 
     String::from_utf8(bytes).unwrap()

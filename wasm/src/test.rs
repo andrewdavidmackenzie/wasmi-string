@@ -17,10 +17,8 @@ pub extern "C" fn alloc(size: usize) -> *mut c_void {
     Deallocate a chunk of memory in wasm module
 */
 #[no_mangle]
-pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
-    unsafe {
-        let _buf = Vec::from_raw_parts(ptr, 0, cap);
-    }
+pub extern "C" fn dealloc(ptr: *mut c_void) {
+    mem::forget(ptr);
 }
 
 #[no_mangle]
