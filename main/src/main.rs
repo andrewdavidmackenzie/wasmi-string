@@ -41,31 +41,6 @@ fn send_byte_array(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u3
     }
 }
 
-/*
-    Get the null terminated array of bytes from wasm module memory at `offset`
-
-    Since the wasm module can only return one result (offset) we have to go through the array of bytes
-    until we find the null termination and hence calculate the length
-*/
-fn get_byte_array(memory: &MemoryRef, mut wasm_data_ptr: u32, length: i32) -> Vec<u8> {
-    let mut bytes: Vec<u8> = Vec::with_capacity(length as usize);
-    loop {
-        let mut buf = [0u8; 1];
-        match memory.get_into(wasm_data_ptr, &mut buf) {
-            Ok(_) => {
-                if buf[0] != 0 {
-                    bytes.push(buf[0]);
-                    wasm_data_ptr = wasm_data_ptr + 1
-                } else {
-                    break;
-                }
-            }
-            Err(_) => {}
-        }
-    }
-    bytes
-}
-
 fn main() {
     let path = env::current_dir().unwrap();
     let module = load_from_file(format!("{}/wasm/target/wasm32-unknown-unknown/debug/test.wasm",
@@ -97,9 +72,7 @@ fn main() {
         Ok(e) => {
             match e.unwrap() {
                 RuntimeValue::I32(result_length) => {
-                    let result = get_byte_array(&memory,
-                                                wasm_data_ptr as u32,
-                    result_length);
+                    let result = memory.get(wasm_data_ptr, result_length as usize).unwrap();
                     let result_str = String::from_utf8(result).unwrap();
                     println!("Result is `{}`", result_str);
                 }
