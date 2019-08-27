@@ -13,19 +13,17 @@ pub extern "C" fn alloc(size: usize) -> *mut c_void {
     return ptr as *mut c_void;
 }
 
-/*
-    Deallocate a chunk of memory in wasm module
-*/
 #[no_mangle]
-pub extern "C" fn dealloc(ptr: *mut c_void) {
-    mem::forget(ptr);
-}
+pub extern fn run(data_ptr: *mut c_void, input_data_length: u32) -> u32 {
+    let question_vec: Vec<u8> = unsafe {
+        Vec::from_raw_parts(data_ptr as *mut u8, input_data_length as usize,
+                            input_data_length as usize)
+    };
 
-#[no_mangle]
-pub extern fn run(data: *mut c_void) -> *mut c_void {
-    let result = "The answer to life the universe and everything is 42\0";
+    let question = String::from_utf8(question_vec).unwrap();
+    let answer = question + " = 42";
     unsafe {
-        copy(result.as_ptr(), data as *mut u8, result.len());
+        copy(answer.as_ptr(), data_ptr as *mut u8, answer.len());
     }
-    data
+    answer.len() as u32
 }

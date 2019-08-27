@@ -5,7 +5,6 @@ from rust code, where wasm is interpreted using the WASMI wasm interpreter.
 # Clone Repo
 ```
 git clone https://github.com/hoangpq/wasmi-string
-
 ```
 
 # Build and Run
