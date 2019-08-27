@@ -24,7 +24,7 @@ pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
 }
 
 #[no_mangle]
-pub extern fn digest(data: *mut c_char) -> *mut c_char {
+pub extern fn run(data: *mut c_char) -> *mut c_char {
     let result = "42\0";
     unsafe {
         copy(result.as_ptr(), data as *mut u8, result.len());

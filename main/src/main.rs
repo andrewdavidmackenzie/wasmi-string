@@ -89,7 +89,7 @@ fn main() {
 
     let p = new_string(&instance, &memory, s2);
     let result = instance
-        .invoke_export("digest", &[RuntimeValue::I32(p as i32)], &mut NopExternals);
+        .invoke_export("run", &[RuntimeValue::I32(p as i32)], &mut NopExternals);
 
     match result {
         Ok(e) => {
