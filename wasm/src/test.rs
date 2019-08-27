@@ -20,8 +20,13 @@ pub extern fn run(data_ptr: *mut c_void, input_data_length: u32) -> u32 {
                             input_data_length as usize)
     };
 
-    let question = String::from_utf8(question_vec).unwrap();
-    let answer = question + " = 42";
+    let question: &str = &String::from_utf8(question_vec).unwrap();
+
+    let answer = match question {
+        "What is the meaning of life?" => "42",
+        _ => "I don't know"
+    };
+
     unsafe {
         copy(answer.as_ptr(), data_ptr as *mut u8, answer.len());
     }

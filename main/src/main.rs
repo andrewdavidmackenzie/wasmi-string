@@ -58,6 +58,7 @@ fn main() {
 
     let input_data = "What is the meaning of life?";
     let input_data_length = input_data.len();
+    println!("Question: '{}'", input_data);
 
     // Allocate a string for the input data inside wasm module
     let wasm_data_ptr = send_byte_array(&module_ref, &memory, input_data.as_bytes());
@@ -65,22 +66,20 @@ fn main() {
     // Run the `run` function on the input_data and get a result back
     let result = module_ref
         .invoke_export("run", &[RuntimeValue::I32(wasm_data_ptr as i32),
-                                                RuntimeValue::I32(input_data_length as i32)],
-                        &mut NopExternals);
+            RuntimeValue::I32(input_data_length as i32)],
+                       &mut NopExternals);
 
     match result {
-        Ok(e) => {
-            match e.unwrap() {
+        Ok(value) => {
+            match value.unwrap() {
                 RuntimeValue::I32(result_length) => {
                     let result = memory.get(wasm_data_ptr, result_length as usize).unwrap();
                     let result_str = String::from_utf8(result).unwrap();
-                    println!("Result is `{}`", result_str);
+                    println!("Answer : '{}'", result_str);
                 }
                 _ => println!("Not implemented yet")
             }
         }
-        Err(e) => match e {
-            _ => println!("Not implemented yet")
-        }
+        Err(e) => println!("{:?}", e)
     }
 }
