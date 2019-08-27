@@ -27,9 +27,9 @@ fn load_from_file(filename: &str) -> Module {
 /*
     Allocate memory for a new String inside the wasm module.
 */
-fn new_string(instance: &ModuleRef, memory: &MemoryRef, s: &str, bytes: &[u8]) -> u32 {
+fn new_string(instance: &ModuleRef, memory: &MemoryRef, bytes: &[u8]) -> u32 {
     let result = instance
-        .invoke_export("alloc", &[RuntimeValue::I32((s.len() + 1) as i32)],
+        .invoke_export("alloc", &[RuntimeValue::I32((bytes.len() + 1) as i32)],
                        &mut NopExternals);
 
     match result.unwrap().unwrap() {
@@ -55,11 +55,10 @@ fn dealloc(instance: &ModuleRef, offset: u32) {
 }
 
 /*
-    Get the null terminated string from wasm module memory at `offset` and free that memory
-    on the wasm side by calling `dealloc`
+    Get the null terminated array of bytes from wasm module memory at `offset`
 
-    Sicne the wasm module can only return one result (offset) we have to go through the string
-    there until we find the null termination and hence calculate the length
+    Since the wasm module can only return one result (offset) we have to go through the array of bytes
+    until we find the null termination and hence calculate the length
 */
 fn get_bytes(memory: &MemoryRef, mut offset: u32) -> Vec<u8> {
     let mut bytes: Vec<u8> = vec![];
@@ -101,7 +100,7 @@ fn main() {
     let input_data = "What is the meaning of life?";
 
     // Allocate a string for the input data inside wasm module
-    let input_data_waasm_ptr = new_string(&instance, &memory, input_data, input_data.as_bytes());
+    let input_data_waasm_ptr = new_string(&instance, &memory, input_data.as_bytes());
 
     // Run the `run` function on the input_data and get a result back
     let result = instance
