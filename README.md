@@ -2,6 +2,13 @@
 Shows an example of how to pass String parameters to and from a WASM module (written in rust) 
 from rust code, where wasm is interpreted using the WASMI wasm interpreter.
 
+Since starting I have modified this to work without null-terminated strings sent and received from 
+wasm. That was a first step to sending arbitrary data.
+
+If you want to see an example of how to send arbitrary structure data across the native/wasm
+boundary, using serde serialization and deserialization then you can look at another
+repo of mine where I do that: https://github.com/andrewdavidmackenzie/wasm_explore
+
 # Clone Repo
 ```
 git clone https://github.com/hoangpq/wasmi-string
