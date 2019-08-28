@@ -11,7 +11,7 @@ repo of mine where I do that: https://github.com/andrewdavidmackenzie/wasm_explo
 
 # Clone Repo
 ```
-git clone https://github.com/hoangpq/wasmi-string
+git clone https://github.com/andrewdavidmackenzie/wasmi-string
 ```
 
 # Build and Run
